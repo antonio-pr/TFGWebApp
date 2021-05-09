@@ -8,36 +8,7 @@ const Grafico2 = (props) => {
 
     const [state, setState] = useState(0)
     const [datos, setDatos] = useState({myArray:[]})
-    const [data, setData] = useState({
-        labels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        datasets: [
-            {
-                label: 'CO2 (ppm)',
-                data: datos.myArray.length >= 1 ? datos.myArray : [0],
-                backgroundColor: [
-                    'rgba(75, 192, 192, 0.2)'
-                ],
-                borderColor: [
-                    'rgba(75, 192, 192, 1)'
-                ],
-                borderWidth: 2,
-            },
-
-            {
-                label: 'TU PRIMA',
-                data: datos.myArray.length >= 1 ? datos.myArray : [0],
-                backgroundColor: [
-                    'rgba(75, 192, 192, 0.2)'
-                ],
-                borderColor: [
-                    'rgba(75, 192, 192, 1)'
-                ],
-                borderWidth: 2,
-            },
-
-            
-        ]
-    })
+    const [data, setData] = useState()
     //const [client, setClient] = useState(null);
     //useState(mqtt.connect('mqtt://broker.hivemq.com:8000/mqtt'))
     
@@ -81,7 +52,7 @@ const Grafico2 = (props) => {
         let client = mqtt.connect('mqtt://broker.hivemq.com:8000/mqtt')
         client.on("connect", () => {
             console.log("Connected");
-             client.subscribe("/tfg/react/chart/co2");
+             client.subscribe("/tfg/react/chart/co2/sensor1");
         });
 
         client.on("message", (topic, message) => {
@@ -99,10 +70,10 @@ const Grafico2 = (props) => {
             <h1>Sensor1: {state.co2} </h1>
             <Line
                 height = {400}
-                width = {700}
+                width = {600}
 
                 options={{
-                    maintainAspectRatio: true,
+                    maintainAspectRatio: false,
                     scales: {
                         yAxes: [
                             {
@@ -114,7 +85,22 @@ const Grafico2 = (props) => {
                     }
                 }}
 
-                data={data}
+                data={{
+                    labels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                    datasets: [
+                        {
+                            label: 'CO2 (ppm)',
+                            data: datos.myArray.length >= 1 ? datos.myArray : [0],
+                            backgroundColor: [
+                                'rgba(75, 192, 192, 0.2)'
+                            ],
+                            borderColor: [
+                                'rgba(75, 192, 192, 1)'
+                            ],
+                            borderWidth: 2,
+                        }
+                    ]
+                }}
              />
         
 

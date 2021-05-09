@@ -3,9 +3,7 @@ import mqtt from 'mqtt';
 import { Line } from 'react-chartjs-2';
 import './Grafico2.css'
 
-
 const Grafico4 = (props) => {
-
     useEffect(() => {
     });
 

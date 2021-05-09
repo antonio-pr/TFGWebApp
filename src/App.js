@@ -12,22 +12,17 @@ function App() {
     const [data, setData] = useState()
     const [state, setState] = useState(0)
     const [datos, setDatos] = useState({
-        array1: [],
-        array2: []
     })
-
 
     useEffect(() => {
         const getData = () => {
-            console.log("array1", datos.array1)
-            console.log("array2", datos.array2)
 
             setData({
                 labels: [1,2,3,4,5,6,7,8,9,10],
                 datasets: [
                     {
                         label: 'CO2 (ppm)',
-                        data: datos.array1,
+                        data: datos.sensor1,
                         backgroundColor: [
                         'rgba(75, 192, 192, 0.2)'
                         ],
@@ -39,7 +34,7 @@ function App() {
 
                     {
                         label: 'TU PRIMA',
-                        data: datos.array2,
+                        data: datos.sensor2,
                         backgroundColor: [
                         'rgba(75, 75, 192, 0.2)'
                         ],
@@ -52,58 +47,95 @@ function App() {
             })
         }
 
-        const handleJsonMessage = (json) => {
+        const handleJsonMessage = (json,sensor) => {
             //setState({...json})
             setState(json["co2"])
             const newField = json["co2"]
-            // setDatos(datos.data.push(newField))
+            var myArrayCopy = []
+            const updatedValue = {}
 
-            let myArrayCopy = datos.array1.slice()
-            if (myArrayCopy.length < 10)
-                myArrayCopy.push(newField)
-            else {
-                for (var i = 0; i < 9; i++) {
-                    myArrayCopy[i] = myArrayCopy[i+1]
+
+            if(datos.hasOwnProperty(sensor))
+            {
+                console.log("Ha sido encontrado:", sensor)
+                myArrayCopy = datos[sensor].slice()
+                if (myArrayCopy.length < 10)
+                    myArrayCopy.push(newField)
+                else {
+                    for (var i = 0; i < 9; i++) {
+                        myArrayCopy[i] = myArrayCopy[i+1]
+                    }
+                    myArrayCopy[9] = newField
                 }
-                myArrayCopy[9] = newField
+                updatedValue[sensor] = myArrayCopy
+            }else{
+                console.log("NO ha sido encontrado:", sensor)
+                updatedValue[sensor] = [newField]
             }
 
-            let myArrayCopy2 = datos.array2.slice()
-            if (myArrayCopy2.length < 10)
-                myArrayCopy2.push(newField+20)
-            else {
-                for (var i = 0; i < 9; i++) {
-                    myArrayCopy2[i] = myArrayCopy2[i+1]
-                }
-                myArrayCopy2[9] = newField+20
-            }
             setDatos({
-                array1: myArrayCopy,
-                array2 : myArrayCopy2
+                ...datos,
+                ...updatedValue
             })
+
+            console.log(datos)
+
             getData()
         }
+
+        // const handleJsonMessage = (json,sensor) => {
+        //     //setState({...json})
+        //     setState(json["co2"])
+        //     const newField = json["co2"]
+            
+
+        //     if(datos.hasOwnProperty(sensor))
+        //     {
+        //         console.log("Ha sido encontrado:", sensor)
+        //     }else{
+        //         console.log("NO ha sido encontrado:", sensor)
+        //     }
+
+        //     let myArrayCopy = datos[sensor].slice()
+        //     if (myArrayCopy.length < 10)
+        //         myArrayCopy.push(newField)
+        //     else {
+        //         for (var i = 0; i < 9; i++) {
+        //             myArrayCopy[i] = myArrayCopy[i+1]
+        //         }
+        //         myArrayCopy[9] = newField
+        //     }
+
+        //     setDatos({
+        //         sensor1: myArrayCopy
+        //     })
+        //     getData()
+        // }
 
         getData();
         let client = mqtt.connect('mqtt://broker.hivemq.com:8000/mqtt')
         client.on("connect", () => {
             console.log("Connected");
-            client.subscribe("/tfg/react/chart/co2");
+            client.subscribe("/tfg/react/chart/co2/#");
         });
 
         client.on("message", (topic, message) => {
-            console.log(JSON.parse(message.toString()))
-            handleJsonMessage(JSON.parse(message.toString()));     
+            let regex = /(sensor\d+)/g;
+            let coincidence = topic.match(regex);
+            console.log()
+            handleJsonMessage(JSON.parse(message.toString()), coincidence);     
          });
 
     
         return () => client.end();
-    }, [datos.array1]);
+    }, [datos]);
   
   //<Grafico3 chartData={data} co2={6344}/>
   return (
     <div className="App">
+        <header className="App-header">
         <Grafico4 chartData={data} co2={state}/>
+        </header>
     </div>
     );
   }
